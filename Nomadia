@@ -1,0 +1,129 @@
+// === Nomadia MVP Desktop Packaging Instructions (Full Delivery Setup + Auto Build + Landing Page) ===
+// Nomadia is a cross-platform anonymous flight search engine packaged as a Windows desktop app.
+// It leverages Electron for the frontend, Node.js + Puppeteer for backend scraping,
+// and GitHub Actions for automated releases. This complete setup provides a private, offline-capable
+// solution that users can install easily via a branded Windows installer.
+//
+// The system automatically builds and publishes .exe files to GitHub Releases when a version tag is pushed.
+// It includes a GitHub Pages-hosted landing page with a direct download button.
+// The backend runs locally in the background, ensuring price search remains stealthy and anonymous
+// without cookies or IP tracking.
+// This script completes the build, brand, secure, bundle, auto-release, and delivery setup
+// for Nomadia as a standalone Windows desktop app (offline-capable)
+
+// STEP 1: Install all required packages
+// Run in terminal:
+// npm init -y
+// npm install --save-dev electron electron-builder concurrently
+// npm install express cors puppeteer-extra puppeteer-extra-plugin-stealth dotenv
+
+// STEP 2: Use this package.json structure
+/*
+{
+  "name": "nomadia-desktop",
+  "version": "1.0.0",
+  "description": "Anonymous Flight Search Desktop App (Electron + Puppeteer)",
+  "main": "main.js",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"electron .\"",
+    "server": "node index.js --no-sandbox",
+    "build": "electron-builder --windows nsis",
+    "release": "npm run build"
+  },
+  "devDependencies": {
+    "electron": "^28.1.3",
+    "electron-builder": "^24.6.2",
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "puppeteer-extra": "^3.3.4",
+    "puppeteer-extra-plugin-stealth": "^2.11.1"
+  },
+  "build": {
+    "appId": "com.nomadia.desktop",
+    "productName": "Nomadia",
+    "copyright": "Copyright © 2025 Nomadia",
+    "files": [
+      "**/*"
+    ],
+    "directories": {
+      "buildResources": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
+*/
+
+// STEP 3: .ico Logo
+// Convert logo to .ico using https://icoconvert.com/, save as build/icon.ico
+
+// STEP 4: Auto-build with GitHub Actions
+// Create .github/workflows/release.yml:
+/*
+name: Build and Release Nomadia
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Electron App
+        run: npm run build
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+*/
+
+// STEP 5: Simple Landing Page (index.html in /public or /docs folder)
+/*
+<!DOCTYPE html>
+<html>
+<head><title>Nomadia Desktop</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 60px;">
+  <h1>✈️ Nomadia Desktop App</h1>
+  <p>Private, offline, anonymous flight search — bundled in a simple Windows installer.</p>
+  <a href="https://github.com/YOUR_USERNAME/nomadia-desktop/releases/latest/download/Nomadia%20Setup.exe"
+     style="display: inline-block; padding: 12px 20px; background: #0077ff; color: white; text-decoration: none; border-radius: 8px; font-size: 18px;">
+    Download for Windows (.exe)
+  </a>
+</body>
+</html>
+*/
+
+// STEP 6: To build manually:
+// npm run build
+
+// Output: /dist folder with installer
+// Nomadia is now auto-released via GitHub, has a landing page, and supports one-click download!
